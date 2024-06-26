@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "open": "^8.0.0",
-    "winticket-reg-gh-app-interface": "https://github.com/WinTicket/reg-suit#2c5f734a4f6791be861c4953413b862d7427c08e",
+    "winticket-reg-gh-app-interface": "https://github.com/WinTicket/reg-suit#d62815158e5fed99e5b0746e06031e23d7686f49",
     "reg-suit-util": "^0.14.3",
     "tiny-commit-walker": "^1.1.2",
     "undici": "^6.0.0"
