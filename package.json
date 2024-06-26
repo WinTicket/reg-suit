@@ -1,4 +1,6 @@
 {
+  "name": "winticket-regsuit",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "clean": "rimraf \"packages/*/lib\"",

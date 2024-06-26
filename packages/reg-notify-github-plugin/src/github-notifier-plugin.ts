@@ -19,6 +19,7 @@ export interface GitHubPluginOption {
   installationId?: string;
   owner?: string;
   repository?: string;
+  regconfigId?: string;
   prComment?: boolean;
   prCommentBehavior?: PrCommentBehavior;
   setCommitStatus?: boolean;
@@ -57,6 +58,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
   _setCommitStatus!: boolean;
   _behavior!: PrCommentBehavior;
   _shortDescription!: boolean;
+  _regconfigId!: String;
 
   _apiPrefix!: string;
   _repo!: Repository;
@@ -83,6 +85,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     this._behavior = config.options.prCommentBehavior ?? "default";
     this._setCommitStatus = config.options.setCommitStatus !== false;
     this._shortDescription = config.options.shortDescription ?? false;
+    this._regconfigId = config.options.regconfigId ?? "";
     this._apiPrefix = config.options.customEndpoint || getGhAppInfo().endpoint;
     this._repo = new Repository(path.join(fsUtil.prjRootDir(".git"), ".git"));
   }
