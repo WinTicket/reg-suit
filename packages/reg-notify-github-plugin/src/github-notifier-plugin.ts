@@ -58,7 +58,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
   _setCommitStatus!: boolean;
   _behavior!: PrCommentBehavior;
   _shortDescription!: boolean;
-  _regconfigId!: String;
+  _regconfigId!: string;
 
   _apiPrefix!: string;
   _repo!: Repository;
