@@ -77,7 +77,7 @@ export function createCommentBody(eventBody: CommentSeed) {
     lines.push("");
     if (eventBody.reportUrl) {
       lines.push("");
-      lines.push(`Check [this report](${eventBody.reportUrl}), and review them.`);
+      lines.push(`Check [this report](${eventBody.reportUrl}), せいなだよ`);
       lines.push("");
     }
 
