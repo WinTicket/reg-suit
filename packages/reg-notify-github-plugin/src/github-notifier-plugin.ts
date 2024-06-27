@@ -11,7 +11,7 @@ type PrCommentBehavior = "default" | "once" | "new";
 type FetchRequest = {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
-  body: BaseEventBody;
+  body: string;
 };
 
 export interface GitHubPluginOption {
@@ -160,7 +160,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
         const commentReq: FetchRequest = {
           url: `${this._apiPrefix}/api/comment-to-pr`,
           method: "POST",
-          body: prCommentBody,
+          body: tableMarkdown,
         };
         this._logger.info(`Comment to PR associated with ${this._logger.colors.green(prCommentBody.branchName)} .`);
         this._logger.verbose("PR comment: ", commentReq);
