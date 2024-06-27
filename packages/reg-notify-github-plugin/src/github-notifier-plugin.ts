@@ -98,7 +98,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     const deletedItemsCount = deletedItems.length;
     const passedItemsCount = passedItems.length;
     const state = failedItemsCount + newItemsCount + deletedItemsCount === 0 ? "success" : "failure";
-    const description = state === "success" ? "Regression testing passed" : "Regression testing failed";
+    const description = state === "success" ? "わおわお" : "いえいいえい";
     let sha1: string;
 
     if (head.branch) {
