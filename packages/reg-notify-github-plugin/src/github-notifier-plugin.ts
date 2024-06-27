@@ -1,7 +1,7 @@
 import path from "path";
 import { Repository } from "tiny-commit-walker";
 import { inflateRawSync } from "zlib";
-import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "winticket-reg-gh-app-interface";
+import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "reg-gh-app-interface";
 import { fsUtil } from "reg-suit-util";
 import { NotifierPlugin, NotifyParams, PluginCreateOptions, PluginLogger } from "reg-suit-interface";
 import { fetch } from "undici";
@@ -153,6 +153,9 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
           passedItemsCount,
           shortDescription: this._shortDescription,
         };
+
+        const tableMarkdown = `| :red_circle: Changed | :white_circle: New | :black_circle: Deleted | :large_blue_circle: Passing |\n| ---        | ---   | ---     | ---        |\n| ${deletedItemsCount}          | ${newItemsCount}  |   ${deletedItems}      | ${passedItemsCount}        |`;
+
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
         const commentReq: FetchRequest = {
           url: `${this._apiPrefix}/api/comment-to-pr`,
