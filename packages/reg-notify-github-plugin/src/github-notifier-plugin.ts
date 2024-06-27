@@ -154,7 +154,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
           shortDescription: this._shortDescription,
         };
 
-        // const tableMarkdown = `| :red_circle: Changed | :white_circle: New | :black_circle: Deleted | :large_blue_circle: Passing |\n| ---        | ---   | ---     | ---        |\n| ${deletedItemsCount}          | ${newItemsCount}  |   ${deletedItems}      | ${passedItemsCount}        |`;
+        const tableMarkdown = `| :red_circle: Changed | :white_circle: New | :black_circle: Deleted | :large_blue_circle: Passing |\n| ---        | ---   | ---     | ---        |\n| ${deletedItemsCount}          | ${newItemsCount}  |   ${deletedItems}      | ${passedItemsCount}        |`;
 
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
         // github comment API をたたく
@@ -163,7 +163,9 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
           method: "POST",
           body: prCommentBody,
         };
+        this._logger.info(`tableMarkdown: ${tableMarkdown}`);
         this._logger.info(`Comment to PR associated with ${this._logger.colors.green(prCommentBody.branchName)} .`);
+        this._logger.info(`PR comment: ${commentReq}`);
         this._logger.verbose("PR comment: ", commentReq);
         reqs.push(commentReq);
       } else {
