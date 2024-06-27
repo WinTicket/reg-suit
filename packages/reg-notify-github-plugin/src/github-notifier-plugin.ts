@@ -11,7 +11,7 @@ type PrCommentBehavior = "default" | "once" | "new";
 type FetchRequest = {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
-  body: string;
+  body: BaseEventBody;
 };
 
 export interface GitHubPluginOption {
@@ -154,13 +154,14 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
           shortDescription: this._shortDescription,
         };
 
-        const tableMarkdown = `| :red_circle: Changed | :white_circle: New | :black_circle: Deleted | :large_blue_circle: Passing |\n| ---        | ---   | ---     | ---        |\n| ${deletedItemsCount}          | ${newItemsCount}  |   ${deletedItems}      | ${passedItemsCount}        |`;
+        // const tableMarkdown = `| :red_circle: Changed | :white_circle: New | :black_circle: Deleted | :large_blue_circle: Passing |\n| ---        | ---   | ---     | ---        |\n| ${deletedItemsCount}          | ${newItemsCount}  |   ${deletedItems}      | ${passedItemsCount}        |`;
 
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
+        // github comment API をたたく
         const commentReq: FetchRequest = {
           url: `${this._apiPrefix}/api/comment-to-pr`,
           method: "POST",
-          body: tableMarkdown,
+          body: prCommentBody,
         };
         this._logger.info(`Comment to PR associated with ${this._logger.colors.green(prCommentBody.branchName)} .`);
         this._logger.verbose("PR comment: ", commentReq);
