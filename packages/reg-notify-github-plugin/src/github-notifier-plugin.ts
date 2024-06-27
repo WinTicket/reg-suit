@@ -175,7 +175,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     if (this._noEmit) {
       return Promise.resolve();
     }
-    const spinner = this._logger.getSpinner("sending notification to GitHub...");
+    const spinner = this._logger.getSpinner("せいせいせいなsending notification to GitHub...");
     spinner.start();
     return Promise.all(
       reqs.map(async req => {
