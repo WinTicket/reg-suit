@@ -1,5 +1,5 @@
 {
-  "name": "reg-notify-github-plugin",
+  "name": "winticket-reg-notify-github-plugin",
   "version": "0.14.4",
   "description": "Notify reg-suit result to GitHub repository",
   "regSuitPlugin": {

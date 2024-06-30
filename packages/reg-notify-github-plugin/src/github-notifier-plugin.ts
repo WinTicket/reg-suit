@@ -101,6 +101,8 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     const description = state === "success" ? "わおわお" : "いえいいえい";
     let sha1: string;
 
+    this._logger.info(`正式にForkできていないということですか？`);
+
     if (head.branch) {
       sha1 = head.branch.commit.hash;
     } else if (head.commit) {
