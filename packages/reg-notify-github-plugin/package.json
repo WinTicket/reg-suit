@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "open": "^8.0.0",
-    "reg-gh-app-interface": "https://gitpkg.now.sh/WinTicket/gh-app/packages/reg-gh-app-interface#chore-impl-winticket-name-for-gh-app",
+    "reg-gh-app-interface": "^1.3.0",
     "reg-suit-util": "^0.14.3",
     "tiny-commit-walker": "^1.1.2",
     "undici": "^6.0.0"

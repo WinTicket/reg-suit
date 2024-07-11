@@ -8,10 +8,10 @@ import { fetch } from "undici";
 
 type PrCommentBehavior = "default" | "once" | "new";
 
-type FetchRequest = {
+type OwnedFetchRequest = {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
-  body: BaseEventBody;
+  body: OwnedBaseEventBody;
 };
 
 export interface GitHubPluginOption {
@@ -127,10 +127,10 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
       };
     }
 
-    const reqs: FetchRequest[] = [];
+    const reqs: OwnedFetchRequest[] = [];
 
     if (this._setCommitStatus) {
-      const statusReq: FetchRequest = {
+      const statusReq: OwnedFetchRequest = {
         url: `${this._apiPrefix}/api/update-status`,
         method: "POST",
         body: updateStatusBody,
@@ -142,7 +142,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
 
     if (this._prComment) {
       if (head.type === "branch" && head.branch) {
-        const prCommentBody: CommentToPrBody = {
+        const prCommentBody: OwnedCommentToPrBody = {
           ...this._apiOpt,
           behavior: this._behavior,
           branchName: head.branch.name,
@@ -157,7 +157,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
 
         this._logger.verbose("params.reportUrl: ", params.reportUrl);
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
-        const commentReq: FetchRequest = {
+        const commentReq: OwnedFetchRequest = {
           url: `${this._apiPrefix}/api/comment-to-pr`,
           method: "POST",
           body: prCommentBody,
@@ -194,4 +194,29 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
       .then(() => spinner.stop())
       .catch(() => spinner.stop());
   }
+}
+
+interface OwnedCommentToPrBody extends OwnedBaseEventBody, OwnedResultMetadata {
+  branchName: string;
+  failedItemsCount: number;
+  newItemsCount: number;
+  deletedItemsCount: number;
+  passedItemsCount: number;
+  shortDescription?: boolean;
+  regconfigId?: string;
+  behavior?: PrCommentBehavior;
+  reportUrl?: string;
+  headOid?: string;
+}
+interface OwnedResultMetadata {
+  failedItemsCount: number;
+  newItemsCount: number;
+  deletedItemsCount: number;
+  passedItemsCount: number;
+  shortDescription?: boolean;
+}
+interface OwnedBaseEventBody {
+  installationId: string;
+  owner: string;
+  repository: string;
 }
