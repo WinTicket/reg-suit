@@ -152,7 +152,6 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
           deletedItemsCount,
           passedItemsCount,
           shortDescription: this._shortDescription,
-          regconfigId: this._regconfigId,
         };
 
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
