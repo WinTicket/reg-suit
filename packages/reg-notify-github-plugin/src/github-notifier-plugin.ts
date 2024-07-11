@@ -98,10 +98,8 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     const deletedItemsCount = deletedItems.length;
     const passedItemsCount = passedItems.length;
     const state = failedItemsCount + newItemsCount + deletedItemsCount === 0 ? "success" : "failure";
-    const description = state === "success" ? "わおわお" : "いえいいえい";
+    const description = state === "success" ? "Regression testing passed" : "Regression testing failed";
     let sha1: string;
-
-    this._logger.info(`正式にForkできていないということですか？`);
 
     if (head.branch) {
       sha1 = head.branch.commit.hash;
@@ -154,21 +152,16 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
           deletedItemsCount,
           passedItemsCount,
           shortDescription: this._shortDescription,
+          regconfigId: this._regconfigId,
         };
 
-        const tableMarkdown = `| :red_circle: Changed | :white_circle: New | :black_circle: Deleted | :large_blue_circle: Passing |\n| ---        | ---   | ---     | ---        |\n| ${deletedItemsCount}          | ${newItemsCount}  |   ${deletedItems}      | ${passedItemsCount}        |`;
-
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
-        // github comment API をたたく
         const commentReq: FetchRequest = {
           url: `${this._apiPrefix}/api/comment-to-pr`,
           method: "POST",
           body: prCommentBody,
         };
-        this._logger.info(`tableMarkdown: ${tableMarkdown}`);
         this._logger.info(`Comment to PR associated with ${this._logger.colors.green(prCommentBody.branchName)} .`);
-        this._logger.info(`PR comment: ${commentReq}`);
-        this._logger.verbose("PR comment: ", commentReq);
         reqs.push(commentReq);
       } else {
         this._logger.warn(`HEAD is not attached into any branches.`);
@@ -177,7 +170,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     if (this._noEmit) {
       return Promise.resolve();
     }
-    const spinner = this._logger.getSpinner("せいせいせいなsending notification to GitHub...");
+    const spinner = this._logger.getSpinner("せいせいせいせいsending notification to GitHub...");
     spinner.start();
     return Promise.all(
       reqs.map(async req => {
