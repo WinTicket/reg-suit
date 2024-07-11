@@ -11,8 +11,8 @@ importers:
         specifier: ^8.0.0
         version: 8.4.2
       reg-gh-app-interface:
-        specifier: git+ssh://git@github.com/WinTicket/gh-app.git#path:packages/reg-gh-app-interface&0b8b98ddb423b174cd23d37d54360e82224859f7
-        version: https://codeload.github.com/WinTicket/gh-app/tar.gz/0b8b98ddb423b174cd23d37d54360e82224859f7#path:packages/reg-gh-app-interface
+        specifier: git+ssh://git@github.com/WinTicket/gh-app.git#path:packages/reg-gh-app-interface&bee2dcc863cd0025f8fb6fd174bb02d0db93c051
+        version: https://codeload.github.com/WinTicket/gh-app/tar.gz/bee2dcc863cd0025f8fb6fd174bb02d0db93c051#path:packages/reg-gh-app-interface
       reg-suit-util:
         specifier: ^0.14.3
         version: 0.14.3
@@ -1568,11 +1568,11 @@ packages:
     resolution:
       { integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg== }
 
-  reg-gh-app-interface@https://codeload.github.com/WinTicket/gh-app/tar.gz/0b8b98ddb423b174cd23d37d54360e82224859f7#path:packages/reg-gh-app-interface:
+  reg-gh-app-interface@https://codeload.github.com/WinTicket/gh-app/tar.gz/bee2dcc863cd0025f8fb6fd174bb02d0db93c051#path:packages/reg-gh-app-interface:
     resolution:
       {
         path: packages/reg-gh-app-interface,
-        tarball: https://codeload.github.com/WinTicket/gh-app/tar.gz/0b8b98ddb423b174cd23d37d54360e82224859f7,
+        tarball: https://codeload.github.com/WinTicket/gh-app/tar.gz/bee2dcc863cd0025f8fb6fd174bb02d0db93c051,
       }
     version: 1.0.0
 
@@ -3535,7 +3535,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  reg-gh-app-interface@https://codeload.github.com/WinTicket/gh-app/tar.gz/0b8b98ddb423b174cd23d37d54360e82224859f7#path:packages/reg-gh-app-interface:
+  reg-gh-app-interface@https://codeload.github.com/WinTicket/gh-app/tar.gz/bee2dcc863cd0025f8fb6fd174bb02d0db93c051#path:packages/reg-gh-app-interface:
     {}
 
   reg-suit-interface@0.14.2:
