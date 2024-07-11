@@ -1,7 +1,7 @@
 import path from "path";
 import { Repository } from "tiny-commit-walker";
 import { inflateRawSync } from "zlib";
-import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "reg-gh-app-interface";
+import { getGhAppInfo, BaseEventBody, UpdateStatusBody } from "reg-gh-app-interface";
 import { fsUtil } from "reg-suit-util";
 import { NotifierPlugin, NotifyParams, PluginCreateOptions, PluginLogger } from "reg-suit-interface";
 import { fetch } from "undici";
