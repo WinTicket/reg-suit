@@ -1,17 +1,17 @@
 import path from "path";
 import { Repository } from "tiny-commit-walker";
 import { inflateRawSync } from "zlib";
-import { getGhAppInfo, BaseEventBody, UpdateStatusBody } from "reg-gh-app-interface";
+import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "reg-gh-app-interface";
 import { fsUtil } from "reg-suit-util";
 import { NotifierPlugin, NotifyParams, PluginCreateOptions, PluginLogger } from "reg-suit-interface";
 import { fetch } from "undici";
 
 type PrCommentBehavior = "default" | "once" | "new";
 
-type OwnedFetchRequest = {
+type FetchRequest = {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
-  body: OwnedBaseEventBody;
+  body: BaseEventBody;
 };
 
 export interface GitHubPluginOption {
@@ -127,10 +127,10 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
       };
     }
 
-    const reqs: OwnedFetchRequest[] = [];
+    const reqs: FetchRequest[] = [];
 
     if (this._setCommitStatus) {
-      const statusReq: OwnedFetchRequest = {
+      const statusReq: FetchRequest = {
         url: `${this._apiPrefix}/api/update-status`,
         method: "POST",
         body: updateStatusBody,
@@ -142,7 +142,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
 
     if (this._prComment) {
       if (head.type === "branch" && head.branch) {
-        const prCommentBody: OwnedCommentToPrBody = {
+        const prCommentBody: CommentToPrBody = {
           ...this._apiOpt,
           behavior: this._behavior,
           branchName: head.branch.name,
@@ -157,7 +157,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
 
         this._logger.verbose("params.reportUrl: ", params.reportUrl);
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
-        const commentReq: OwnedFetchRequest = {
+        const commentReq: FetchRequest = {
           url: `${this._apiPrefix}/api/comment-to-pr`,
           method: "POST",
           body: prCommentBody,
@@ -194,29 +194,4 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
       .then(() => spinner.stop())
       .catch(() => spinner.stop());
   }
-}
-
-interface OwnedCommentToPrBody extends OwnedBaseEventBody, OwnedResultMetadata {
-  branchName: string;
-  failedItemsCount: number;
-  newItemsCount: number;
-  deletedItemsCount: number;
-  passedItemsCount: number;
-  shortDescription?: boolean;
-  regconfigId?: string;
-  behavior?: PrCommentBehavior;
-  reportUrl?: string;
-  headOid?: string;
-}
-interface OwnedResultMetadata {
-  failedItemsCount: number;
-  newItemsCount: number;
-  deletedItemsCount: number;
-  passedItemsCount: number;
-  shortDescription?: boolean;
-}
-interface OwnedBaseEventBody {
-  installationId: string;
-  owner: string;
-  repository: string;
 }
