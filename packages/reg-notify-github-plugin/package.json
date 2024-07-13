@@ -31,10 +31,10 @@
   },
   "dependencies": {
     "open": "^8.0.0",
-    "reg-gh-app-interface": "git+ssh://git@github.com/WinTicket/gh-app.git#path:packages/reg-gh-app-interface&bee2dcc863cd0025f8fb6fd174bb02d0db93c051",
+    "reg-gh-app-interface": "^1.3.0",
     "reg-suit-util": "^0.14.3",
     "tiny-commit-walker": "^1.1.2",
     "undici": "^6.0.0",
-    "octokit": "4.0.2"
+    "octokit": "3.5.0"
   }
 }
