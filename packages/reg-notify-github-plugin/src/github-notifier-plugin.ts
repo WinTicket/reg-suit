@@ -1,10 +1,10 @@
-import { Octokit } from "octokit";
 import path from "path";
 import { Repository } from "tiny-commit-walker";
 import { inflateRawSync } from "zlib";
 import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "reg-gh-app-interface";
 import { fsUtil } from "reg-suit-util";
 import { NotifierPlugin, NotifyParams, PluginCreateOptions, PluginLogger } from "reg-suit-interface";
+import { Octokit } from "@octokit/rest";
 
 type PrCommentBehavior = "default" | "once" | "new";
 
@@ -83,7 +83,6 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     this._regconfigId = config.options.regconfigId ?? "";
     this._apiPrefix = config.options.customEndpoint || getGhAppInfo().endpoint;
     this._repo = new Repository(path.join(fsUtil.prjRootDir(".git"), ".git"));
-    // Octokit instance initialization
     this._octokit = new Octokit();
   }
 
@@ -154,7 +153,6 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
           deletedItemsCount,
           passedItemsCount,
           shortDescription: this._shortDescription,
-          regconfigId: this._regconfigId,
         };
 
         this._logger.verbose("params.reportUrl: ", params.reportUrl);
