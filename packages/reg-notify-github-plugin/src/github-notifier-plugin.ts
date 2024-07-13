@@ -5,6 +5,7 @@ import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "
 import { fsUtil } from "reg-suit-util";
 import { NotifierPlugin, NotifyParams, PluginCreateOptions, PluginLogger } from "reg-suit-interface";
 import { Octokit } from "@octokit/rest";
+import { createAppAuth } from "@octokit/auth-app";
 
 type PrCommentBehavior = "default" | "once" | "new";
 
@@ -56,7 +57,8 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
 
   _apiPrefix!: string;
   _repo!: Repository;
-  _octokit!: Octokit;
+  _appOctokit!: Octokit;
+  _installOctokit!: Octokit;
 
   _decodeClientId(clientId: string) {
     const tmp = inflateRawSync(new Buffer(clientId, "base64")).toString().split("/");
@@ -68,7 +70,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     return { repository, installationId, owner };
   }
 
-  init(config: PluginCreateOptions<GitHubPluginOption>) {
+  async init(config: PluginCreateOptions<GitHubPluginOption>) {
     this._noEmit = config.noEmit;
     this._logger = config.logger;
     if (config.options.clientId) {
@@ -83,7 +85,25 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     this._regconfigId = config.options.regconfigId ?? "";
     this._apiPrefix = config.options.customEndpoint || getGhAppInfo().endpoint;
     this._repo = new Repository(path.join(fsUtil.prjRootDir(".git"), ".git"));
-    this._octokit = new Octokit();
+
+    // App-level authentication
+    this._appOctokit = new Octokit({
+      authStrategy: createAppAuth,
+    });
+
+    // Get the installation ID if not provided
+    if (!config.options.installationId) {
+      const { data: installation } = await this._appOctokit.apps.getRepoInstallation({
+        owner: this._apiOpt.owner,
+        repo: this._apiOpt.repository,
+      });
+      this._apiOpt.installationId = installation.id.toString();
+    }
+
+    // Installation-level authentication
+    this._installOctokit = new Octokit({
+      authStrategy: createAppAuth,
+    });
   }
 
   async notify(params: NotifyParams): Promise<any> {
@@ -125,7 +145,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
 
     if (this._setCommitStatus) {
       try {
-        await this._octokit.rest.repos.createCommitStatus({
+        await this._installOctokit.rest.repos.createCommitStatus({
           owner: this._apiOpt.owner,
           repo: this._apiOpt.repository,
           sha: sha1,
@@ -159,7 +179,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
 
         try {
-          const pulls = await this._octokit.rest.pulls.list({
+          const pulls = await this._installOctokit.rest.pulls.list({
             owner: this._apiOpt.owner,
             repo: this._apiOpt.repository,
             head: `${this._apiOpt.owner}:${prCommentBody.branchName}`,
@@ -169,7 +189,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
             const pr = pulls.data[0];
             this._logger.verbose("pr: ", pr);
 
-            await this._octokit.rest.issues.createComment({
+            await this._installOctokit.rest.issues.createComment({
               owner: this._apiOpt.owner,
               repo: this._apiOpt.repository,
               issue_number: pr.number,
