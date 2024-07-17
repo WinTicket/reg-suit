@@ -4,21 +4,17 @@ import { inflateRawSync } from "zlib";
 import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "reg-gh-app-interface";
 import { fsUtil } from "reg-suit-util";
 import { NotifierPlugin, NotifyParams, PluginCreateOptions, PluginLogger } from "reg-suit-interface";
-import { fetch } from "undici";
+import { Octokit } from "@octokit/rest";
 
 type PrCommentBehavior = "default" | "once" | "new";
-
-type FetchRequest = {
-  url: string;
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  body: BaseEventBody;
-};
 
 export interface GitHubPluginOption {
   clientId?: string;
   installationId?: string;
   owner?: string;
   repository?: string;
+  regconfigId?: string;
+  token?: string;
   prComment?: boolean;
   prCommentBehavior?: PrCommentBehavior;
   setCommitStatus?: boolean;
@@ -57,9 +53,13 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
   _setCommitStatus!: boolean;
   _behavior!: PrCommentBehavior;
   _shortDescription!: boolean;
+  _regconfigId!: string;
+  _token!: string;
 
   _apiPrefix!: string;
   _repo!: Repository;
+  _appOctokit!: Octokit;
+  _installOctokit!: Octokit;
 
   _decodeClientId(clientId: string) {
     const tmp = inflateRawSync(new Buffer(clientId, "base64")).toString().split("/");
@@ -71,7 +71,7 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     return { repository, installationId, owner };
   }
 
-  init(config: PluginCreateOptions<GitHubPluginOption>) {
+  async init(config: PluginCreateOptions<GitHubPluginOption>) {
     this._noEmit = config.noEmit;
     this._logger = config.logger;
     if (config.options.clientId) {
@@ -83,8 +83,28 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     this._behavior = config.options.prCommentBehavior ?? "default";
     this._setCommitStatus = config.options.setCommitStatus !== false;
     this._shortDescription = config.options.shortDescription ?? false;
+    this._regconfigId = config.options.regconfigId ?? "";
     this._apiPrefix = config.options.customEndpoint || getGhAppInfo().endpoint;
     this._repo = new Repository(path.join(fsUtil.prjRootDir(".git"), ".git"));
+
+    // App-level authentication
+    this._appOctokit = new Octokit({
+      auth: config.options.token,
+    });
+
+    // Get the installation ID if not provided
+    if (!config.options.installationId) {
+      const { data: installation } = await this._appOctokit.apps.getRepoInstallation({
+        owner: this._apiOpt.owner,
+        repo: this._apiOpt.repository,
+      });
+      this._apiOpt.installationId = installation.id.toString();
+    }
+
+    // Installation-level authentication
+    this._installOctokit = new Octokit({
+      auth: config.options.token,
+    });
   }
 
   async notify(params: NotifyParams): Promise<any> {
@@ -124,17 +144,22 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
       };
     }
 
-    const reqs: FetchRequest[] = [];
-
     if (this._setCommitStatus) {
-      const statusReq: FetchRequest = {
-        url: `${this._apiPrefix}/api/update-status`,
-        method: "POST",
-        body: updateStatusBody,
-      };
-      this._logger.info(`Update status for ${this._logger.colors.green(updateStatusBody.sha1)} .`);
-      this._logger.verbose("update-status: ", statusReq);
-      reqs.push(statusReq);
+      try {
+        await this._installOctokit.rest.repos.createCommitStatus({
+          owner: this._apiOpt.owner,
+          repo: this._apiOpt.repository,
+          sha: sha1,
+          state,
+          description,
+          context: "regression-tests",
+          target_url: params.reportUrl,
+        });
+        this._logger.info(`Updated commit status for ${this._logger.colors.green(sha1)} .`);
+      } catch (err) {
+        const handler = errorHandler(this._logger);
+        await handler(err);
+      }
     }
 
     if (this._prComment) {
@@ -150,42 +175,63 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
           passedItemsCount,
           shortDescription: this._shortDescription,
         };
+
+        this._logger.verbose("params.reportUrl: ", params.reportUrl);
         if (params.reportUrl) prCommentBody.reportUrl = params.reportUrl;
-        const commentReq: FetchRequest = {
-          url: `${this._apiPrefix}/api/comment-to-pr`,
-          method: "POST",
-          body: prCommentBody,
-        };
-        this._logger.info(`Comment to PR associated with ${this._logger.colors.green(prCommentBody.branchName)} .`);
-        this._logger.verbose("PR comment: ", commentReq);
-        reqs.push(commentReq);
-      } else {
-        this._logger.warn(`HEAD is not attached into any branches.`);
-      }
-    }
-    if (this._noEmit) {
-      return Promise.resolve();
-    }
-    const spinner = this._logger.getSpinner("sending notification to GitHub...");
-    spinner.start();
-    return Promise.all(
-      reqs.map(async req => {
+
         try {
-          const res = await fetch(req.url, {
-            method: req.method,
-            body: JSON.stringify(req.body),
+          const pulls = await this._installOctokit.rest.pulls.list({
+            owner: this._apiOpt.owner,
+            repo: this._apiOpt.repository,
+            head: `${this._apiOpt.owner}:${prCommentBody.branchName}`,
           });
 
-          if (400 <= res.status) {
-            throw new Error(`HTTP ${res.status}: Failed to request.`);
+          if (pulls.data.length > 0) {
+            const pr = pulls.data[0];
+            this._logger.verbose("pr: ", pr);
+
+            await this._installOctokit.rest.issues.createComment({
+              owner: this._apiOpt.owner,
+              repo: this._apiOpt.repository,
+              issue_number: pr.number,
+              body: this._createCommentBody(prCommentBody),
+            });
+            this._logger.info(
+              `Commented on PR ${this._logger.colors.green(
+                `${this._apiOpt.owner}/${this._apiOpt.repository}#${pr.number}`,
+              )} .`,
+            );
+          } else {
+            this._logger.warn(
+              `No pull request found for branch ${this._logger.colors.yellow(prCommentBody.branchName)}.`,
+            );
           }
         } catch (err) {
           const handler = errorHandler(this._logger);
           await handler(err);
         }
-      }),
-    )
-      .then(() => spinner.stop())
-      .catch(() => spinner.stop());
+      } else {
+        this._logger.warn(`HEAD is not attached into any branches.`);
+      }
+    }
+
+    if (this._noEmit) {
+      return Promise.resolve();
+    }
+    const spinner = this._logger.getSpinner("せいせいせいせいsending notification to GitHub...");
+    spinner.start();
+    spinner.stop();
+  }
+
+  // Helper method to create the PR comment body content
+  _createCommentBody(body: CommentToPrBody) {
+    // implement the method to generate the comment text
+    return `Comparison result:
+    - Failed items: ${body.failedItemsCount}
+    - New items: ${body.newItemsCount}
+    - Deleted items: ${body.deletedItemsCount}
+    - Passed items: ${body.passedItemsCount}
+    ${body.shortDescription ? " - Short descriptions enabled" : ""}
+    ${body.reportUrl ? ` - [Report URL](${body.reportUrl})` : ""}`;
   }
 }

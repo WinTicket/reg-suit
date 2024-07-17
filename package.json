@@ -1,4 +1,6 @@
 {
+  "name": "reg-suit",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "clean": "rimraf \"packages/*/lib\"",
@@ -18,16 +20,14 @@
     "watch:core": "tsc -w -p packages/reg-suit-core/tsconfig.build.json",
     "watch:cli": "tsc -w -p packages/reg-suit-cli/tsconfig.build.json",
     "watch:util": "tsc -w -p packages/reg-suit-util/tsconfig.build.json",
-    "watch": "run-p watch:*",
-    "postinstall": "husky install"
+    "watch": "run-p watch:*"
   },
   "devDependencies": {
-    "@types/node": "16.11.26",
+    "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "9.1.0",
-    "husky": "9.0.11",
     "lerna": "4.0.0",
     "npm-run-all": "4.1.5",
     "prettier": "2.8.8",
