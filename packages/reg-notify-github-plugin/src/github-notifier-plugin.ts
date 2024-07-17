@@ -5,6 +5,7 @@ import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "
 import { fsUtil } from "reg-suit-util";
 import { NotifierPlugin, NotifyParams, PluginCreateOptions, PluginLogger } from "reg-suit-interface";
 import { Octokit } from "@octokit/rest";
+import { createAppAuth } from "@octokit/auth-app";
 
 type PrCommentBehavior = "default" | "once" | "new";
 
@@ -86,7 +87,9 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     this._repo = new Repository(path.join(fsUtil.prjRootDir(".git"), ".git"));
 
     // App-level authentication
-    this._appOctokit = new Octokit();
+    this._appOctokit = new Octokit({
+      authStrategy: createAppAuth,
+    });
 
     // Get the installation ID if not provided
     if (!config.options.installationId) {
@@ -97,7 +100,10 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
       this._apiOpt.installationId = installation.id.toString();
     }
 
-    this._installOctokit = new Octokit();
+    // Installation-level authentication
+    this._installOctokit = new Octokit({
+      authStrategy: createAppAuth,
+    });
   }
 
   async notify(params: NotifyParams): Promise<any> {

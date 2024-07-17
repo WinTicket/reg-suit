@@ -35,6 +35,7 @@
     "reg-suit-util": "^0.14.3",
     "tiny-commit-walker": "^1.1.2",
     "undici": "^6.0.0",
+    "@octokit/auth-app": "^3.0.0",
     "@octokit/rest": "^17.6.0"
   }
 }
