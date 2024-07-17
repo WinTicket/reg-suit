@@ -5,6 +5,7 @@ import { getGhAppInfo, BaseEventBody, CommentToPrBody, UpdateStatusBody } from "
 import { fsUtil } from "reg-suit-util";
 import { NotifierPlugin, NotifyParams, PluginCreateOptions, PluginLogger } from "reg-suit-interface";
 import { Octokit } from "@octokit/rest";
+import { createAppAuth } from "@octokit/auth-app";
 
 type PrCommentBehavior = "default" | "once" | "new";
 
@@ -14,6 +15,8 @@ export interface GitHubPluginOption {
   owner?: string;
   repository?: string;
   regconfigId?: string;
+  appId?: string;
+  privateKey?: string;
   prComment?: boolean;
   prCommentBehavior?: PrCommentBehavior;
   setCommitStatus?: boolean;
@@ -53,6 +56,9 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
   _behavior!: PrCommentBehavior;
   _shortDescription!: boolean;
   _regconfigId!: string;
+  _appId!: string;
+  _privateKey!: string;
+  _token!: string;
 
   _apiPrefix!: string;
   _repo!: Repository;
@@ -84,11 +90,14 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
     this._regconfigId = config.options.regconfigId ?? "";
     this._apiPrefix = config.options.customEndpoint || getGhAppInfo().endpoint;
     this._repo = new Repository(path.join(fsUtil.prjRootDir(".git"), ".git"));
-    const token = process.env.GITHUB_TOKEN ?? "";
 
     // App-level authentication
     this._appOctokit = new Octokit({
-      auth: token,
+      authStrategy: createAppAuth,
+      auth: {
+        appId: config.options.appId,
+        privateKey: config.options.privateKey,
+      },
     });
 
     // Get the installation ID if not provided
@@ -102,7 +111,11 @@ export class GitHubNotifierPlugin implements NotifierPlugin<GitHubPluginOption> 
 
     // Installation-level authentication
     this._installOctokit = new Octokit({
-      auth: token,
+      authStrategy: createAppAuth,
+      auth: {
+        appId: config.options.appId,
+        privateKey: config.options.privateKey,
+      },
     });
   }
 
